@@ -1,44 +1,47 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Home, PlusCircle, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
 
-export default function Sidebar() {
+interface SidebarProps {
+  role: "Admin" | "User";
+}
+
+export default function Sidebar({ role }: SidebarProps) {
+  const pathname = usePathname();
+
+  const adminLinks = [
+    { name: "Home", path: "/dashboard/admin" },
+    { name: "Users", path: "/dashboard/admin/users" },
+    { name: "Update Profile", path: "/dashboard/admin/profile" },
+    { name: "Add Blog", path: "/dashboard/admin/blog" },
+    { name: "Add Project", path: "/dashboard/admin/project/add" },
+    { name: "Update Project", path: "/dashboard/admin/project/update" },
+  ];
+
+
+  const userLinks = [
+    { name: "Home", path: "/dashboard/user" },
+    { name: "Update Profile", path: "/dashboard/user/profile/update" },
+  ];
+
+  const links = role === "Admin" ? adminLinks : userLinks;
+
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-black text-white">
-      {/* Top navigation */}
-      <nav className="flex-1 space-y-2 p-4">
+    <aside className="w-64 bg-gray-900 text-white p-4 flex flex-col gap-4">
+      <h2 className="text-2xl font-bold text-pink-400 mb-4">Dashboard</h2>
+      {links.map((link) => (
         <Link
-          href="/"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 hover:text-black"
+          key={link.path}
+          href={link.path}
+          className={`block p-2 rounded hover:bg-pink-500 transition ${
+            pathname === link.path ? "bg-pink-600 font-bold" : ""
+          }`}
         >
-          <Home className="h-4 w-4" />
-          Home
+          {link.name}
         </Link>
-
-        <Link
-          href="/dashboard/create-blog"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 hover:text-black"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Create Blog
-        </Link>
-      </nav>
-
-      {/* Bottom action */}
-      <div className="p-4 border-t border-gray-500">
-        <Button
-          variant="destructive"
-          className="w-full justify-start gap-2 cursor-pointer"
-          onClick={() => {
-            console.log("Logout clicked");
-          }}
-        >
-          <LogOut className="h-4 w-4" />
-          Logout
-        </Button>
-      </div>
+      ))}
     </aside>
   );
 }

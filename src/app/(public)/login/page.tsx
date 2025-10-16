@@ -17,7 +17,7 @@ type LoginFormValues = {
 export default function Login() {
     const { register, handleSubmit } = useForm<LoginFormValues>({
         defaultValues: {
-            email: "jabed1780@gmal.com",
+            email: "jabed1780@gmail.com",
             password: "jabed1780",
         },
     });
