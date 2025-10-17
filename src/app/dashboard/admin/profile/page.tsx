@@ -48,8 +48,7 @@ export default function ProfilePage() {
     if (!profile) return;
 
     try {
-      await axios.patch(
-        "http://localhost:5000/api/v1/user/update-profile",
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/user/update-profile`,
         {
           userId: profile.id,
           name: profile.name,

@@ -27,7 +27,7 @@ export default function DashboardPage() {
           return;
         }
 
-        const res = await axios.get("http://localhost:5000/api/v1/user/me", {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
           withCredentials: true,
         });
 
@@ -45,11 +45,12 @@ export default function DashboardPage() {
     fetchUser();
   }, [router]);
 
+
   if (!user) {
     return (
-  
-        <Loading></Loading>
-      
+
+      <Loading></Loading>
+
     );
   }
 
@@ -60,7 +61,7 @@ export default function DashboardPage() {
       transition={{ duration: 0.6 }}
       className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white flex items-center justify-center"
     >
-    
+
     </motion.div>
   );
 }

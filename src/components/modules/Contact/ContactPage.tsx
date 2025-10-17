@@ -38,7 +38,7 @@ export default function ContactPage() {
         try {
             setLoading(true);
 
-            const res = await fetch("http://localhost:5000/api/v1/message/create", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/message/create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, content }),
@@ -56,7 +56,6 @@ export default function ContactPage() {
             setLoading(false);
         }
     };
-
     return (
         <div className="bg-black text-white min-h-screen px-6 md:px-16 py-24 relative overflow-hidden">
             {/* Heading */}

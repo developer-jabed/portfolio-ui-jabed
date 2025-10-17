@@ -22,9 +22,10 @@ export default function MessagePage() {
     const fetchMessages = async () => {
         try {
             setLoading(true);
-            const res = await axios.get("http://localhost:5000/api/v1/message/get");
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/message/get`);
+
             setMessages(res.data.data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || "Failed to fetch messages");

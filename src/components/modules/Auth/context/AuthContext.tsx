@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 export interface UserType {
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const checkUser = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/v1/user/me", {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
                 withCredentials: true,
             });
             if (res.data.data) {
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const logout = async () => {
         try {
             await axios.post(
-                "http://localhost:5000/api/v1/auth/logout",
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`,
                 {},
                 { withCredentials: true }
             );

@@ -29,7 +29,7 @@ export default function Blog() {
   // ✅ Axios setup
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    axios.defaults.baseURL = "http://localhost:5000/api/v1";
+    axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL;
     axios.defaults.headers.common["Authorization"] = token ? `Bearer ${token}` : "";
     axios.defaults.withCredentials = true;
   }, []);

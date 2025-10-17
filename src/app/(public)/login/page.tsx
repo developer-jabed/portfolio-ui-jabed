@@ -33,10 +33,11 @@ export default function Login() {
 
         try {
             const res = await axios.post(
-                "http://localhost:5000/api/v1/auth/login",
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
                 values,
                 { withCredentials: true }
             );
+
 
             // ✅ Store token
             localStorage.setItem("accessToken", res.data.data.accessToken);

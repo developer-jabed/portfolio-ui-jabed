@@ -16,23 +16,27 @@ interface BlogType {
     published: boolean;
 }
 
+type ModalType = "view" | "edit" | "create";
+
 export default function Blog() {
     const { user } = useAuth();
     const [blogs, setBlogs] = useState<BlogType[]>([]);
     const [loading, setLoading] = useState(true);
+    const [modalType, setModalType] = useState<ModalType | null>(null);
     const [selectedBlog, setSelectedBlog] = useState<BlogType | null>(null);
-    const [editBlog, setEditBlog] = useState<BlogType | null>(null);
-    const [newBlog, setNewBlog] = useState<Partial<BlogType> | null>(null);
+    const [blogForm, setBlogForm] = useState<Partial<BlogType> | null>(null);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     // Axios setup
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
-        axios.defaults.baseURL = "http://localhost:5000/api/v1";
+        axios.defaults.baseURL = API_URL;
         axios.defaults.headers.common["Authorization"] = token ? `Bearer ${token}` : "";
         axios.defaults.withCredentials = true;
-    }, []);
+    }, [API_URL]);
 
-    // Fetch blogs for logged-in user
+    // Fetch blogs
     const fetchMyBlogs = async () => {
         if (!user) return;
         try {
@@ -64,35 +68,44 @@ export default function Blog() {
         }
     };
 
-    // Update blog
-    const handleUpdateSubmit = async (e: React.FormEvent) => {
+    // Submit create or update
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editBlog) return;
+        if (!blogForm) return;
+
         try {
-            const res = await axios.patch(`/blog/update/${editBlog.id}`, editBlog);
-            setBlogs((prev) => prev.map((b) => (b.id === editBlog.id ? res.data.data : b)));
-            setEditBlog(null);
-            toast.success("Blog updated successfully!");
+            if (modalType === "create") {
+                const res = await axios.post("/blog/create", blogForm);
+                setBlogs((prev) => [res.data.data, ...prev]);
+                toast.success("Blog created successfully!");
+            } else if (modalType === "edit" && selectedBlog) {
+                const res = await axios.patch(`/blog/update/${selectedBlog.id}`, blogForm);
+                setBlogs((prev) =>
+                    prev.map((b) => (b.id === selectedBlog.id ? res.data.data : b))
+                );
+                toast.success("Blog updated successfully!");
+            }
+            closeModal();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to update blog");
+            toast.error(err.response?.data?.message || "Failed to submit blog");
         }
     };
 
-    // Create blog
-    const handleCreateSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newBlog?.title || !newBlog?.content || !user) return;
-
-        try {
-            const res = await axios.post("/blog/create", newBlog);
-            setBlogs((prev) => [res.data.data, ...prev]);
-            setNewBlog(null);
-            toast.success("Blog created successfully!");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to create blog");
+    const openModal = (type: ModalType, blog?: BlogType) => {
+        setModalType(type);
+        if (blog) {
+            setSelectedBlog(blog);
+            setBlogForm({ ...blog });
+        } else {
+            setBlogForm({ title: "", excerpt: "", content: "", coverImage: "", published: true });
         }
+    };
+
+    const closeModal = () => {
+        setModalType(null);
+        setSelectedBlog(null);
+        setBlogForm(null);
     };
 
     if (loading)
@@ -106,9 +119,7 @@ export default function Blog() {
 
             {/* Create Button */}
             <motion.button
-                onClick={() =>
-                    setNewBlog({ title: "", excerpt: "", content: "", coverImage: "", published: true })
-                }
+                onClick={() => openModal("create")}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 className="fixed bottom-8 right-8 bg-pink-500 hover:bg-pink-600 p-4 rounded-full shadow-lg shadow-pink-400/30 transition z-50"
@@ -134,13 +145,13 @@ export default function Blog() {
                             <p className="text-gray-300 text-sm line-clamp-3">{blog.excerpt}</p>
                             <div className="flex gap-2 mt-2 flex-wrap">
                                 <button
-                                    onClick={() => setSelectedBlog(blog)}
+                                    onClick={() => openModal("view", blog)}
                                     className="flex items-center gap-1 px-3 py-1 bg-pink-400 rounded hover:bg-pink-500 transition"
                                 >
                                     <Eye className="w-4 h-4" /> View
                                 </button>
                                 <button
-                                    onClick={() => setEditBlog(blog)}
+                                    onClick={() => openModal("edit", blog)}
                                     className="flex items-center gap-1 px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500 transition"
                                 >
                                     <Edit className="w-4 h-4" /> Update
@@ -157,30 +168,25 @@ export default function Blog() {
                 ))}
             </div>
 
-            {/* Modals */}
+            {/* Modal */}
             <AnimatePresence>
-                {(selectedBlog || editBlog || newBlog) && (
+                {modalType && blogForm && (
                     <motion.div
                         initial={{ opacity: 1 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                        onClick={() => {
-                            setSelectedBlog(null);
-                            setEditBlog(null);
-                            setNewBlog(null);
-                        }}
+                        onClick={closeModal}
                     >
                         <motion.div
                             initial={{ scale: 0.8, opacity: 1 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.8, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
                             transition={{ duration: 0.25 }}
                             onClick={(e) => e.stopPropagation()}
                             className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-6 max-w-2xl w-full shadow-2xl border border-pink-500/20"
                         >
-                            {/* VIEW BLOG */}
-                            {selectedBlog && (
+                            {modalType === "view" && selectedBlog && (
                                 <div className="flex flex-col gap-4">
                                     <h2 className="text-2xl font-bold text-pink-400">{selectedBlog.title}</h2>
                                     {selectedBlog.coverImage && (
@@ -188,7 +194,7 @@ export default function Blog() {
                                     )}
                                     <p className="text-gray-300">{selectedBlog.content}</p>
                                     <button
-                                        onClick={() => setSelectedBlog(null)}
+                                        onClick={closeModal}
                                         className="mt-4 bg-pink-400 hover:bg-pink-500 text-black py-2 rounded-md"
                                     >
                                         Close
@@ -196,49 +202,47 @@ export default function Blog() {
                                 </div>
                             )}
 
-                            {/* EDIT BLOG */}
-                            {editBlog && (
-                                <form
-                                    onSubmit={handleUpdateSubmit}
-                                    className="flex flex-col gap-4"
-                                >
-                                    <h2 className="text-2xl font-bold text-pink-400">Edit Blog</h2>
+                            {(modalType === "edit" || modalType === "create") && (
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                                    <h2 className="text-2xl font-bold text-pink-400">
+                                        {modalType === "edit" ? "Edit Blog" : "Create Blog"}
+                                    </h2>
                                     <input
                                         type="text"
                                         placeholder="Title"
-                                        value={editBlog.title}
-                                        onChange={(e) => setEditBlog({ ...editBlog, title: e.target.value })}
+                                        value={blogForm.title}
+                                        onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
                                         className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
                                         required
                                     />
                                     <input
                                         type="text"
                                         placeholder="Excerpt"
-                                        value={editBlog.excerpt}
-                                        onChange={(e) => setEditBlog({ ...editBlog, excerpt: e.target.value })}
+                                        value={blogForm.excerpt}
+                                        onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
                                         className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
                                         required
                                     />
                                     <textarea
                                         rows={5}
                                         placeholder="Content"
-                                        value={editBlog.content}
-                                        onChange={(e) => setEditBlog({ ...editBlog, content: e.target.value })}
+                                        value={blogForm.content}
+                                        onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
                                         className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
                                         required
                                     />
                                     <input
                                         type="text"
                                         placeholder="Cover Image URL"
-                                        value={editBlog.coverImage}
-                                        onChange={(e) => setEditBlog({ ...editBlog, coverImage: e.target.value })}
+                                        value={blogForm.coverImage}
+                                        onChange={(e) => setBlogForm({ ...blogForm, coverImage: e.target.value })}
                                         className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
                                     />
                                     <label className="flex items-center gap-2 text-gray-300 mt-2">
                                         <input
                                             type="checkbox"
-                                            checked={editBlog.published}
-                                            onChange={(e) => setEditBlog({ ...editBlog, published: e.target.checked })}
+                                            checked={blogForm.published}
+                                            onChange={(e) => setBlogForm({ ...blogForm, published: e.target.checked })}
                                             className="w-4 h-4 accent-pink-400"
                                         />
                                         Published
@@ -246,79 +250,15 @@ export default function Blog() {
                                     <div className="flex gap-2 mt-4">
                                         <button
                                             type="submit"
-                                            className="bg-yellow-400 hover:bg-yellow-500 text-black py-2 px-4 rounded-md flex-1"
+                                            className={`flex-1 py-2 px-4 rounded-md font-semibold ${modalType === "edit" ? "bg-yellow-400 hover:bg-yellow-500" : "bg-pink-400 hover:bg-pink-500"
+                                                }`}
                                         >
-                                            Update
+                                            {modalType === "edit" ? "Update" : "Create"}
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setEditBlog(null)}
-                                            className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md flex-1"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-
-                            {/* CREATE BLOG */}
-                            {newBlog && (
-                                <form
-                                    onSubmit={handleCreateSubmit}
-                                    className="flex flex-col gap-4"
-                                >
-                                    <h2 className="text-2xl font-bold text-pink-400">Create Blog</h2>
-                                    <input
-                                        type="text"
-                                        placeholder="Title"
-                                        value={newBlog.title}
-                                        onChange={(e) => setNewBlog({ ...newBlog, title: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Excerpt"
-                                        value={newBlog.excerpt}
-                                        onChange={(e) => setNewBlog({ ...newBlog, excerpt: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
-                                        required
-                                    />
-                                    <textarea
-                                        rows={5}
-                                        placeholder="Content"
-                                        value={newBlog.content}
-                                        onChange={(e) => setNewBlog({ ...newBlog, content: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Cover Image URL"
-                                        value={newBlog.coverImage}
-                                        onChange={(e) => setNewBlog({ ...newBlog, coverImage: e.target.value })}
-                                        className="w-full px-3 py-2 rounded-md bg-gray-800 text-white border border-pink-500/40"
-                                    />
-                                    <label className="flex items-center gap-2 text-gray-300 mt-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={newBlog.published}
-                                            onChange={(e) => setNewBlog({ ...newBlog, published: e.target.checked })}
-                                            className="w-4 h-4 accent-pink-400"
-                                        />
-                                        Published
-                                    </label>
-                                    <div className="flex gap-2 mt-4">
-                                        <button
-                                            type="submit"
-                                            className="bg-pink-400 hover:bg-pink-500 text-black py-2 px-4 rounded-md flex-1"
-                                        >
-                                            Create
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNewBlog(null)}
-                                            className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md flex-1"
+                                            onClick={closeModal}
+                                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md"
                                         >
                                             Cancel
                                         </button>

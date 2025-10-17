@@ -26,15 +26,15 @@ export default function AllBlogsPage() {
 
   // Axios setup
   useEffect(() => {
-    axios.defaults.baseURL = "http://localhost:5000/api/v1";
+    axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL; // <- use env
     axios.defaults.withCredentials = true;
 
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("/blog/all-blogs");
+        const res = await axios.get("/blog/all-blogs"); // relative to baseURL
         setBlogs(res.data.data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error(err);
         toast.error(err.response?.data?.message || "Failed to fetch blogs");

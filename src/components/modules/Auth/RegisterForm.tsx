@@ -48,11 +48,14 @@ export default function RegisterForm() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/v1/user/create-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/user/create-user`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        }
+      );
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Registration failed");
@@ -60,9 +63,7 @@ export default function RegisterForm() {
       toast.success("🎉 Registration successful! Redirecting to login...");
       form.reset();
 
-      // Redirect to login page after 1.5s
       setTimeout(() => router.push("/login"), 1500);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error(error);
@@ -71,6 +72,7 @@ export default function RegisterForm() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">

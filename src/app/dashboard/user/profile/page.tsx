@@ -19,6 +19,9 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<ProfileType | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+    // Initialize profile
     useEffect(() => {
         if (user) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +39,8 @@ export default function ProfilePage() {
     }, [user]);
 
     if (!user) return <p className="text-center mt-10 text-red-500">User not found</p>;
-    if (loading || !profile) return <p className="text-center mt-10 text-gray-400">Loading...</p>;
+    if (loading || !profile)
+        return <p className="text-center mt-10 text-gray-400">Loading...</p>;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -49,7 +53,7 @@ export default function ProfilePage() {
 
         try {
             await axios.patch(
-                "http://localhost:5000/api/v1/user/update-profile",
+                `${API_URL}/user/update-profile`,
                 {
                     userId: profile.id,
                     name: profile.name,
@@ -58,7 +62,6 @@ export default function ProfilePage() {
                 },
                 { withCredentials: true }
             );
-
             toast.success("Profile updated successfully!");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {

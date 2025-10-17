@@ -17,9 +17,9 @@ interface ProjectsResponse {
 
 const fetchProjects = async (page = 1, limit = 6): Promise<ProjectsResponse> => {
     const res = await fetch(
-        `http://localhost:5000/api/v1/project/all-project?page=${page}&limit=${limit}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/project/all-project?page=${page}&limit=${limit}`,
         {
-            next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+            next: { revalidate: 60 }, // ISR
         }
     );
 
@@ -29,6 +29,7 @@ const fetchProjects = async (page = 1, limit = 6): Promise<ProjectsResponse> => 
 
     return res.json();
 };
+
 
 export default async function ProjectsPage({ searchParams }: { searchParams?: { page?: string } }) {
     const page = parseInt(searchParams?.page || "1");
