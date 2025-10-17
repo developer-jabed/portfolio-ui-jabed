@@ -8,7 +8,11 @@ import { motion } from "framer-motion";
 import { Home, Book, User, Folder, Mail, Grid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export const NavMenu = (props: NavigationMenuProps) => {
+interface NavMenuProps extends NavigationMenuProps {
+  orientation?: "horizontal" | "vertical";
+}
+
+export const NavMenu = ({ orientation = "horizontal", ...props }: NavMenuProps) => {
   const pathname = usePathname();
 
   const links = [
@@ -20,10 +24,14 @@ export const NavMenu = (props: NavigationMenuProps) => {
     { href: "/dashboard", label: "Dashboard", icon: <Grid className="w-5 h-5" /> },
   ];
 
+  const isVertical = orientation === "vertical";
+
   return (
     <TooltipProvider>
       <NavigationMenu {...props}>
-        <NavigationMenuList className="flex gap-6 font-medium">
+        <NavigationMenuList
+          className={`flex ${isVertical ? "flex-col gap-4" : "flex-row gap-6"} font-medium`}
+        >
           {links.map((link) => {
             const isActive = pathname === link.href;
 
@@ -41,22 +49,26 @@ export const NavMenu = (props: NavigationMenuProps) => {
                       >
                         <span className="flex items-center gap-2">
                           {link.icon}
-                          <span>{link.label}</span>
+                          <span className={`${isVertical ? "text-lg" : ""}`}>{link.label}</span>
                         </span>
 
                         {/* Active underline */}
-                        <motion.span
-                          layoutId="nav-underline"
-                          className="absolute left-0 bottom-0 h-0.5 bg-pink-400 rounded-full"
-                          animate={{ width: isActive ? "100%" : "0%" }}
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        />
+                        {!isVertical && (
+                          <motion.span
+                            layoutId="nav-underline"
+                            className="absolute left-0 bottom-0 h-0.5 bg-pink-400 rounded-full"
+                            animate={{ width: isActive ? "100%" : "0%" }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          />
+                        )}
                       </Link>
                     </NavigationMenuLink>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>{link.label}</p>
-                  </TooltipContent>
+                  {!isVertical && (
+                    <TooltipContent side="bottom">
+                      <p>{link.label}</p>
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </NavigationMenuItem>
             );

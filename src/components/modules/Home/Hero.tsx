@@ -26,7 +26,7 @@ export default function Hero() {
 
       tl.from(headlineRef.current, {
         y: 80,
-        opacity: 0,
+        opacity: 1,
         duration: 1,
         ease: "power4.out",
       })
@@ -34,7 +34,7 @@ export default function Hero() {
           subRef.current,
           {
             y: 40,
-            opacity: 0,
+            opacity: 1,
             duration: 0.8,
             ease: "power3.out",
           },
@@ -44,7 +44,7 @@ export default function Hero() {
           btnRef.current,
           {
             y: 30,
-            opacity: 0,
+            opacity: 1,
             duration: 0.6,
             ease: "power3.out",
           },
@@ -156,9 +156,9 @@ export default function Hero() {
         <AnimatePresence mode="wait">
           <motion.p
             key={index}
-            initial={{ y: 40, opacity: 0 }}
+            initial={{ y: 40, opacity: 1 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -40, opacity: 0 }}
+            exit={{ y: -40, opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
             className="text-lg md:text-xl font-medium text-gray-400"
           >

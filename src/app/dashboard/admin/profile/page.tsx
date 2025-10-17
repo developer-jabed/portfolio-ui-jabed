@@ -11,6 +11,7 @@ interface ProfileType {
   email: string;
   phone?: string;
   status: "ACTIVE" | "INACTIVE";
+  picture?: string;
 }
 
 export default function ProfilePage() {
@@ -20,16 +21,15 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userData = user as any;
       setProfile({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        id: (user as any).id, // cast if your user type doesn't have id
-        name: user.name || "",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        email: (user as any).email || "",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        status: (user as any).status || "ACTIVE",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        phone: (user as any).phone || "",
+        id: userData.id,
+        name: userData.name || "",
+        email: userData.email || "",
+        status: userData.status || "ACTIVE",
+        phone: userData.phone || "",
+        picture: userData.picture || "",
       });
       setLoading(false);
     }
@@ -54,11 +54,13 @@ export default function ProfilePage() {
           userId: profile.id,
           name: profile.name,
           phone: profile.phone,
+          picture: profile.picture,
         },
         { withCredentials: true }
       );
+
       toast.success("Profile updated successfully!");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to update profile");
@@ -69,6 +71,24 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto p-6 bg-gray-900 rounded-xl shadow-lg mt-10 text-white">
       <h1 className="text-3xl font-bold text-pink-400 mb-6">My Profile</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Profile Picture URL */}
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={profile.picture || "/default-avatar.png"}
+            alt="Profile"
+            className="w-24 h-24 rounded-full object-cover border-2 border-pink-400"
+          />
+          <input
+            type="text"
+            name="picture"
+            value={profile.picture || ""}
+            onChange={handleChange}
+            placeholder="Profile Picture URL"
+            className="w-full p-2 rounded-lg bg-gray-800 text-white"
+          />
+        </div>
+
+        {/* Name */}
         <div>
           <label className="block text-gray-300 mb-1">Name</label>
           <input
@@ -81,6 +101,7 @@ export default function ProfilePage() {
           />
         </div>
 
+        {/* Phone */}
         <div>
           <label className="block text-gray-300 mb-1">Phone</label>
           <input
@@ -92,6 +113,7 @@ export default function ProfilePage() {
           />
         </div>
 
+        {/* Email */}
         <div>
           <label className="block text-gray-300 mb-1">Email</label>
           <input
@@ -102,6 +124,7 @@ export default function ProfilePage() {
           />
         </div>
 
+        {/* Status */}
         <div>
           <label className="block text-gray-300 mb-1">Status</label>
           <input

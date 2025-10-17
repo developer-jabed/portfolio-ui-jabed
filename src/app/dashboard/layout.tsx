@@ -1,35 +1,76 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import Sidebar from "@/components/shared/Sidebar";
-
 import { useAuth } from "@/components/modules/Auth/context/AuthContext";
 import Loading from "@/components/ui/Loading";
 import AdminLayout from "@/components/admin/AdminLayout";
 import UserLayout from "@/components/user/UserLayout";
+import { Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface DashboardLayoutProps {
     children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-    const { user} = useAuth();
-    // console.log("checkUser:",checkUser)
+    const { user } = useAuth();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const router = useRouter();
 
-    // Show loading while auth status is being checked
-    if ( !user) return <Loading />;
+    // Redirect if user is not available
+    useEffect(() => {
+        if (user === null) {
+            router.replace("/login"); // redirect to login page
+        }
+    }, [user, router]);
 
-    // Deny access if not logged in after check
-    if (!user) return <p className="text-red-500 text-center mt-10">Access Denied. Please login.</p>;
+    if (!user) return <Loading />;
 
     return (
-        <main className="min-h-dvh flex gap-4">
-            <Sidebar role={user.role} />
-            {user.role === "Admin" ? (
-                <AdminLayout>{children}</AdminLayout>
-            ) : (
-                <UserLayout>{children}</UserLayout>
+        <main className="min-h-screen flex flex-col md:flex-row">
+            {/* Sidebar for large screens */}
+            <div className="hidden md:flex">
+                <Sidebar role={user.role} />
+            </div>
+
+            {/* Sidebar toggle for small screens */}
+            <div className="md:hidden fixed top-4 left-4 z-50">
+                <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="p-2 rounded bg-pink-500 text-white shadow-lg"
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {sidebarOpen && (
+                <div className="fixed inset-0 z-40 flex">
+                    <div
+                        className="fixed inset-0 bg-black/50"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                    <div className="relative w-64 bg-gray-900 text-white p-4">
+                        <button
+                            onClick={() => setSidebarOpen(false)}
+                            className="absolute top-4 right-4 p-2 rounded bg-pink-500"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                        <Sidebar role={user.role} />
+                    </div>
+                </div>
             )}
+
+            {/* Content Area */}
+            <div className="flex-1 p-4 md:p-6">
+                {user.role === "Admin" ? (
+                    <AdminLayout>{children}</AdminLayout>
+                ) : (
+                    <UserLayout>{children}</UserLayout>
+                )}
+            </div>
         </main>
     );
 }
