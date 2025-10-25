@@ -23,7 +23,7 @@ export default function Users() {
         try {
             setLoading(true);
             const res = await axios.get(
-                `http://localhost:5000/api/v1/user/all?page=${page}&limit=${limit}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/user/all?page=${page}&limit=${limit}`,
                 { withCredentials: true }
             );
 

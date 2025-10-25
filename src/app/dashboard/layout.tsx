@@ -10,67 +10,78 @@ import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface DashboardLayoutProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-    const { user } = useAuth();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const router = useRouter();
+  const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-    // Redirect if user is not available
-    useEffect(() => {
-        if (user === null) {
-            router.replace("/login"); // redirect to login page
-        }
-    }, [user, router]);
+  // 1️⃣ Show loading for 5 seconds by default
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 5000); // 5 seconds delay
+    return () => clearTimeout(timer);
+  }, []);
 
-    if (!user) return <Loading />;
+  // 2️⃣ Redirect if no user after loading
+  useEffect(() => {
+    if (!loading && user === null) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
 
-    return (
-        <main className="min-h-screen flex flex-col md:flex-row">
-            {/* Sidebar for large screens */}
-            <div className="hidden md:flex">
-                <Sidebar role={user.role} />
-            </div>
+  // 3️⃣ Show loading screen
+  if (loading || !user) {
+    return <Loading />;
+  }
 
-            {/* Sidebar toggle for small screens */}
-            <div className="md:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setSidebarOpen(true)}
-                    className="p-2 rounded bg-pink-500 text-white shadow-lg"
-                >
-                    <Menu className="w-6 h-6" />
-                </button>
-            </div>
+  // 4️⃣ Show main layout after loading is done
+  return (
+    <main className="min-h-screen flex flex-col md:flex-row">
+      {/* Sidebar for large screens */}
+      <div className="hidden md:flex">
+        <Sidebar role={user.role} />
+      </div>
 
-            {/* Mobile Sidebar Overlay */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-40 flex">
-                    <div
-                        className="fixed inset-0 bg-black/50"
-                        onClick={() => setSidebarOpen(false)}
-                    />
-                    <div className="relative w-64 bg-gray-900 text-white p-4">
-                        <button
-                            onClick={() => setSidebarOpen(false)}
-                            className="absolute top-4 right-4 p-2 rounded bg-pink-500"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
-                        <Sidebar role={user.role} />
-                    </div>
-                </div>
-            )}
+      {/* Sidebar toggle for small screens */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="p-2 rounded bg-pink-500 text-white shadow-lg"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      </div>
 
-            {/* Content Area */}
-            <div className="flex-1 p-4 md:p-6">
-                {user.role === "Admin" ? (
-                    <AdminLayout>{children}</AdminLayout>
-                ) : (
-                    <UserLayout>{children}</UserLayout>
-                )}
-            </div>
-        </main>
-    );
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 flex">
+          <div
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="relative w-64 bg-gray-900 text-white p-4">
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded bg-pink-500"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <Sidebar role={user.role} />
+          </div>
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className="flex-1 p-4 md:p-6">
+        {user.role === "Admin" ? (
+          <AdminLayout>{children}</AdminLayout>
+        ) : (
+          <UserLayout>{children}</UserLayout>
+        )}
+      </div>
+    </main>
+  );
 }

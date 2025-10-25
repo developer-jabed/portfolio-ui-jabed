@@ -11,6 +11,7 @@ export interface UserType {
 interface AuthContextType {
     isLoggedIn: boolean;
     user: UserType | null;
+    loading: boolean; // added loading
     checkUser: () => Promise<void>;
     logout: () => Promise<void>;
 }
@@ -20,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState<UserType | null>(null);
-    // console.log("user:",user)
+    const [loading, setLoading] = useState(true); // loading starts as true
 
     const checkUser = async () => {
         try {
@@ -29,8 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
             if (res.data.data) {
                 setIsLoggedIn(true);
-                setUser(res.data.data); // store user object
-               
+                setUser(res.data.data);
             } else {
                 setIsLoggedIn(false);
                 setUser(null);
@@ -41,6 +41,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(null);
         }
     };
+
+    useEffect(() => {
+        const runCheck = async () => {
+            await checkUser(); // fetch user
+            // keep loading true for 5 seconds
+            const timer = setTimeout(() => setLoading(false), 5000);
+            return () => clearTimeout(timer);
+        };
+        runCheck();
+    }, []);
 
     const logout = async () => {
         try {
@@ -56,12 +66,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    useEffect(() => {
-        checkUser();
-    }, []);
-
     return (
-        <AuthContext.Provider value={{ isLoggedIn, user, checkUser, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, loading, checkUser, logout }}>
             {children}
         </AuthContext.Provider>
     );
@@ -69,7 +75,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context)
-        throw new Error("useAuth must be used inside an AuthProvider");
+    if (!context) throw new Error("useAuth must be used inside an AuthProvider");
     return context;
 };

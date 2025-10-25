@@ -1,6 +1,7 @@
 "use client";
 
 import Hero from "@/components/modules/Home/Hero";
+import RecentActivity from "@/components/RecentActivity"; // ✅ Import RecentActivity
 import { motion } from "framer-motion";
 import { Code2, Github, Linkedin, Mail, Star, Database, ServerCog, Terminal, Layers } from "lucide-react";
 
@@ -21,22 +22,19 @@ export default function HomePage() {
   const featuredProjects = [
     {
       title: "Portfolio Website",
-      description:
-        "A modern portfolio showcasing sleek animations, dynamic content, and responsive UI.",
+      description: "A modern portfolio showcasing sleek animations, dynamic content, and responsive UI.",
       repoUrl: "https://github.com/developer-jabed/portfolio",
       liveUrl: "https://portfolio-jabed.vercel.app",
     },
     {
       title: "Food Delivery App",
-      description:
-        "Fullstack MERN app with JWT authentication, cart functionality, and review system.",
+      description: "Fullstack MERN app with JWT authentication, cart functionality, and review system.",
       repoUrl: "https://github.com/developer-jabed/food-delivery",
       liveUrl: "https://food-delivery-jabed.vercel.app",
     },
     {
       title: "Blog Platform",
-      description:
-        "A blogging platform with CRUD features, user authentication, and real-time updates.",
+      description: "A blogging platform with CRUD features, user authentication, and real-time updates.",
       repoUrl: "https://github.com/developer-jabed/blog-platform",
       liveUrl: "https://blog-platform-jabed.vercel.app",
     },
@@ -127,6 +125,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Recent Activity (GitHub Timeline) */}
+      <RecentActivity />
 
       {/* Testimonial */}
       <section className="py-28 text-center bg-gradient-to-r from-pink-900/20 to-red-900/20 backdrop-blur-sm">
